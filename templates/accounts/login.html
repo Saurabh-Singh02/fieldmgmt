@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FieldAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .brand-logo {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .brand-header h3 {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .brand-header p {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+        
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .form-control::placeholder {
+            color: #adb5bd;
+        }
+        
+        .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.3rem rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+        }
+        
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .login-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            z-index: 10;
+        }
+        
+        .input-with-icon {
+            padding-left: 45px !important;
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .role-btn {
+            flex: 1;
+            min-width: 70px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .role-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .role-btn i {
+            display: block;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #667eea;
+        }
+        
+        .role-btn span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 12px 15px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+        
+        .form-check-input {
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            width: 1.2em;
+            height: 1.2em;
+        }
+        
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .form-check-label {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .forgot-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .forgot-link:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        
+        /* Loading animation */
+        .btn-loading {
+            position: relative;
+        }
+        
+        .btn-loading .spinner {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .btn-loading .btn-text {
+            opacity: 0;
+        }
+        
+        @media (max-width: 576px) {
+            .auth-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .brand-logo {
+                font-size: 2.5rem;
+            }
+            
+            .role-btn {
+                min-width: 60px;
+                padding: 10px 6px;
+            }
+            
+            .role-btn i {
+                font-size: 1rem;
+            }
+            
+            .role-btn span {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <!-- Brand Header -->
+        <div class="brand-header">
+            <div class="brand-logo">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h3>Welcome Back</h3>
+            <p>Sign in to your FieldAI account</p>
+        </div>
+
+        <!-- Error Message -->
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'accounts:login' %}" id="loginForm">
+            {% csrf_token %}
+            
+            <!-- Username -->
+            <div class="input-group">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" class="form-control input-with-icon" id="username" name="username" 
+                       placeholder="Enter your username" required>
+            </div>
+            
+            <!-- Password -->
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" class="form-control input-with-icon" id="password" name="password" 
+                       placeholder="Enter your password" required>
+            </div>
+            
+            <!-- Role Selection -->
+            <div class="mb-3">
+                <label class="form-label">Login as</label>
+                <div class="role-selector">
+                    <div class="role-btn active" data-role="admin">
+                        <i class="fas fa-cog"></i>
+                        <span>Admin</span>
+                    </div>
+                    <div class="role-btn" data-role="manager">
+                        <i class="fas fa-tasks"></i>
+                        <span>Manager</span>
+                    </div>
+                    <div class="role-btn" data-role="engineer">
+                        <i class="fas fa-tools"></i>
+                        <span>Engineer</span>
+                    </div>
+                    <div class="role-btn" data-role="client">
+                        <i class="fas fa-user"></i>
+                        <span>Client</span>
+                    </div>
+                    <div class="role-btn" data-role="accounts">
+                        <i class="fas fa-calculator"></i>
+                        <span>Accounts</span>
+                    </div>
+                </div>
+                <input type="hidden" id="selected-role" name="role" value="admin">
+            </div>
+            
+            <!-- Remember Me -->
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span class="btn-text">Sign In</span>
+                </button>
+            </div>
+            
+            <!-- Links -->
+            <div class="text-center mt-3">
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="login-link">
+                <p>Don't have an account? <a href="{% url 'accounts:register' %}">Sign up here</a></p>
+            </div>
+        </form>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Role selection functionality
+        document.querySelectorAll('.role-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.role-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                document.getElementById('selected-role').value = this.getAttribute('data-role');
+            });
+        });
+
+        // Form submission handling
+        $(document).ready(function() {
+            $('#loginForm').on('submit', function(e) {
+                // Show loading state
+                const submitBtn = $('#submitBtn');
+                submitBtn.addClass('btn-loading');
+                submitBtn.html('<div class="spinner"><i class="fas fa-spinner fa-spin"></i></div>');
+                submitBtn.prop('disabled', true);
+                
+                // Allow form to submit normally
+                return true;
+            });
+        });
+
+        // Input field animations
+        $('.form-control').on('focus', function() {
+            $(this).css('transform', 'translateY(-2px)');
+        }).on('blur', function() {
+            $(this).css('transform', 'translateY(0)');
+        });
+
+        // Role button hover effects
+        $('.role-btn').on('mouseenter', function() {
+            if (!$(this).hasClass('active')) {
+                $(this).css('transform', 'translateY(-2px)');
+                $(this).css('box-shadow', '0 4px 15px rgba(102, 126, 234, 0.2)');
+            }
+        }).on('mouseleave', function() {
+            if (!$(this).hasClass('active')) {
+                $(this).css('transform', 'translateY(0)');
+                $(this).css('box-shadow', 'none');
+            }
+        });
+    </script>
+</body>
+</html>

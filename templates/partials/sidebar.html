@@ -1,0 +1,52 @@
+<div class="col-md-2 sidebar d-none d-md-block bg-dark text-white">
+    <div class="text-center mb-4 pt-3">
+        <h5>FieldAI Manager</h5>
+        <p class="text-muted small">Logged in as: {{ user.get_role_display }}</p>
+    </div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="#"><i class="fas fa-home me-2"></i> Dashboard</a>
+        </li>
+        <li class="nav-item">
+    <a class="nav-link" href="{% url 'dashboard:manager_jobs' %}">
+        <i class="fas fa-tasks me-2"></i> Jobs
+    </a> 
+</li>
+        {% if user.role == 'admin' or user.role == 'manager' %}
+        <li class="nav-item">
+    <a class="nav-link" href="{% url 'dashboard:engineer_jobs' %}">
+        <i class="fas fa-tasks me-2"></i> My Jobs</a>
+     </li>
+     <li class="nav-item">
+    <a class="nav-link" href="{% url 'dashboard:manager_engineers' %}">
+        <i class="fas fa-users me-2"></i> Engineers
+    </a>
+</li>
+        {% endif %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard:manager_jobs' %}"><i class="fas fa-calendar me-2"></i> Schedule</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard:manager_jobs' %}"><i class="fas fa-map-marker-alt me-2"></i> Geo-Tracking</a>
+        </li>
+        {% if user.role == 'admin' or user.role == 'accounts' or user.role == 'client' %}
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-file-invoice me-2"></i> Invoices</a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-chart-bar me-2"></i> Reports</a>
+        </li>
+        {% if user.role == 'admin' %}
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-cog me-2"></i> Settings</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="fas fa-user-plus me-2"></i> User Management</a>
+        </li>
+        {% endif %}
+        <li class="nav-item mt-4">
+            <a class="nav-link text-warning" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
+        </li>
+    </ul>
+</div>
