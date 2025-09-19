@@ -1,0 +1,81 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Job Updates - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Job Updates & Notifications</h3>
+    <div>
+        <span class="badge bg-danger me-2">{{ unread_count }} unread</span>
+        <a href="{% url 'dashboard:manager_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="dashboard-card mb-4">
+    <h5>Filters</h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label">Notification Type</label>
+            <select class="form-select" name="type">
+                <option value="">All Types</option>
+                <option value="job_status_update" {% if notification_type == 'job_status_update' %}selected{% endif %}>Status Updates</option>
+                <option value="expense_submitted" {% if notification_type == 'expense_submitted' %}selected{% endif %}>Expense Submissions</option>
+                <option value="location_update" {% if notification_type == 'location_update' %}selected{% endif %}>Location Updates</option>
+                <option value="job_assigned" {% if notification_type == 'job_assigned' %}selected{% endif %}>Job Assignments</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Time Period</label>
+            <select class="form-select" name="time">
+                <option value="">All Time</option>
+                <option value="today" {% if time_filter == 'today' %}selected{% endif %}>Today</option>
+                <option value="week" {% if time_filter == 'week' %}selected{% endif %}>This Week</option>
+            </select>
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:manager_notifications' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="dashboard-card">
+    <h5>Recent Activity</h5>
+    
+    {% if notifications %}
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <div class="notification-item mb-3 p-3 border rounded">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <strong>{{ notification.title }}</strong>
+                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+            </div>
+            <div class="notification-content">
+                {{ notification.message|linebreaks }}
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">
+                    <i class="fas fa-{{ notification.notification_type|default:'bell' }} me-1"></i>
+                    {{ notification.get_notification_type_display|default:"Notification" }}
+                    • {{ notification.created_at|date:"M d, Y H:i" }}
+                </small>
+                {% if notification.related_object_type == 'job' and notification.related_object_id %}
+                <a href="{% url 'dashboard:job_detail' notification.related_object_id %}" class="btn btn-sm btn-outline-primary">
+                    View Job
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No notifications found</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

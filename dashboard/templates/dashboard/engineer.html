@@ -1,0 +1,782 @@
+<!-- templates/dashboard/engineer.html -->
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Engineer Dashboard - FieldAI{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 1px solid #e9ecef;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 1.25rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: none;
+}
+
+.stat-card .number {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.stat-card .label {
+    font-size: 0.85rem;
+    opacity: 0.95;
+    font-weight: 500;
+}
+
+.quick-tools .btn {
+    margin-bottom: 0.75rem;
+    text-align: left;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.quick-tools .btn:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.updates-list .task-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.updates-list .task-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em;
+    font-weight: 600;
+}
+
+.table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+}
+
+.table td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+
+.location-status {
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.location-online {
+    background: linear-gradient(135deg, #4cd964 0%, #2ecc71 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+.location-offline {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.btn-job-action {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-job-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.no-jobs {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background: white;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+}
+
+.job-time {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.current-job-card {
+    background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+}
+
+.performance-metrics {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+}
+
+.performance-stats {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e9ecef;
+    height: 100%;
+}
+
+.performance-stats .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.performance-stats .label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.refresh-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.csrf-token {
+    display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- CSRF Token for AJAX requests -->
+<input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Field Engineer Dashboard</h3>
+    <div>
+        <button class="btn btn-outline-primary me-2 check-in-btn" id="checkInBtn">
+            <i class="fas fa-map-marker-alt"></i> <span id="checkInText">Check In</span>
+        </button>
+        <button class="btn btn-primary" onclick="location.href='{% url 'dashboard:log_time' %}'">
+            <i class="fas fa-plus"></i> Log Time
+        </button>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="loading-spinner">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading dashboard data...</p>
+</div>
+
+<!-- Error Message -->
+<div id="errorMessage" class="alert alert-danger alert-dismissible fade show" style="display: none;">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <span id="errorText">An error occurred while loading data.</span>
+    <button type="button" class="btn-close" onclick="$('#errorMessage').hide()"></button>
+</div>
+
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="number" id="assignedJobs">0</div>
+            <div class="label">Assigned Jobs</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="number" id="hoursThisWeek">0</div>
+            <div class="label">Hours This Week</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="number" id="pendingApprovals">0</div>
+            <div class="label">Pending Approvals</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="number" id="completionRate">0%</div>
+            <div class="label">Completion Rate</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Today's Schedule -->
+        <div class="dashboard-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Today's Schedule</h5>
+                <span class="location-status location-offline" id="locationStatus">Offline</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Client</th>
+                            <th>Service Type</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="todaysJobs">
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                Loading today's schedule...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Current Job Details -->
+        <div class="dashboard-card current-job-card" id="currentJobCard" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">📋 Current Job</h5>
+                <span class="badge bg-warning">In Progress</span>
+            </div>
+            <div id="currentJobDetails">
+                <!-- Current job details will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Tools -->
+        <div class="dashboard-card">
+            <h5 class="mb-3">🛠️ Quick Tools</h5>
+            <div class="quick-tools">
+                <button class="btn btn-outline-primary w-100 text-start mb-2" onclick="showNotification('Voice Notes feature coming soon!', 'info')">
+                    <i class="fas fa-microphone me-2"></i> Voice Notes
+                </button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2" onclick="showNotification('Image Capture feature coming soon!', 'info')">
+                    <i class="fas fa-camera me-2"></i> Capture Image
+                </button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2" onclick="location.href='{% url 'dashboard:timesheet' %}'">
+                    <i class="fas fa-file-alt me-2"></i> Timesheet
+                </button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2" onclick="showNotification('Checklist feature coming soon!', 'info')">
+                    <i class="fas fa-list me-2"></i> Checklist
+                </button>
+                <button class="btn btn-outline-primary w-100 text-start" onclick="location.href='{% url 'dashboard:expense_report' %}'">
+                    <i class="fas fa-file-invoice me-2"></i> Expense Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Recent Updates -->
+        <div class="dashboard-card">
+            <h5 class="mb-3">📋 Recent Activity</h5>
+            <div class="updates-list" id="recentUpdates">
+                <div class="task-item">
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                        <span>Loading activity...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="performance-metrics">
+            <h5 class="mb-4">📊 Performance Metrics</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="performance-stats">
+                        <div class="number" id="onTimeCompletion">0%</div>
+                        <div class="label">On-Time Completion</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="performance-stats">
+                        <div class="number" id="clientRating">0/5</div>
+                        <div class="label">Client Rating</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="performance-stats">
+                        <div class="number" id="jobsThisMonth">0</div>
+                        <div class="label">Jobs This Month</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="performance-stats">
+                        <div class="number" id="earningsThisWeek">$0</div>
+                        <div class="label">Earnings This Week</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Refresh Button -->
+<button class="btn btn-primary refresh-btn" onclick="loadDashboardData()" title="Refresh Dashboard">
+    <i class="fas fa-sync-alt"></i>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let isCheckedIn = false;
+let currentLocation = null;
+let currentJobId = null;
+
+$(document).ready(function() {
+    // Load real data from backend
+    loadDashboardData();
+    
+    // Set up event listeners
+    $('#checkInBtn').click(function() {
+        if (isCheckedIn) {
+            checkOut();
+        } else {
+            checkIn();
+        }
+    });
+    
+    // Add keyboard shortcut for refresh
+    $(document).keydown(function(e) {
+        if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            loadDashboardData();
+        }
+    });
+});
+
+function loadDashboardData() {
+    showLoading(true);
+    $('#errorMessage').hide();
+    
+    $.ajax({
+        url: '{% url "dashboard:engineer_dashboard_data" %}',
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': $('#csrfToken').val()
+        },
+        success: function(response) {
+            if (response.success) {
+                updateDashboard(response.data);
+                showLoading(false);
+            } else {
+                showError(response.error || 'Failed to load dashboard data');
+                showLoading(false);
+            }
+        },
+        error: function(xhr, status, error) {
+            let errorMsg = 'Error loading dashboard data';
+            if (xhr.responseJSON && xhr.responseJSON.error) {
+                errorMsg += ': ' + xhr.responseJSON.error;
+            } else {
+                errorMsg += ': ' + error;
+            }
+            showError(errorMsg);
+            showLoading(false);
+        }
+    });
+}
+
+function updateDashboard(data) {
+    console.log('Dashboard data received:', data);
+    
+    // Update stats cards
+    $('#assignedJobs').text(data.assigned_jobs || 0);
+    $('#hoursThisWeek').text((data.hours_this_week || 0) + 'h');
+    $('#pendingApprovals').text(data.pending_approvals || 0);
+    $('#completionRate').text((data.completion_rate || 0) + '%');
+    
+    // Update performance metrics
+    $('#onTimeCompletion').text((data.performance_metrics?.on_time_completion || 0) + '%');
+    $('#clientRating').text((data.performance_metrics?.client_rating || 0) + '/5');
+    $('#jobsThisMonth').text(data.performance_metrics?.jobs_this_month || 0);
+    $('#earningsThisWeek').text('$' + (data.performance_metrics?.earnings_this_week || 0).toFixed(2));
+    
+    // Update today's jobs
+    updateTodaysJobs(data.todays_jobs || []);
+    
+    // Update recent updates
+    updateRecentUpdates(data.recent_updates || []);
+    
+    // Show/hide current job card
+    if (data.current_job) {
+        showCurrentJob(data.current_job);
+    } else {
+        $('#currentJobCard').hide();
+    }
+}
+
+function updateTodaysJobs(jobs) {
+    const tbody = $('#todaysJobs');
+    tbody.empty();
+    
+    if (jobs.length === 0) {
+        tbody.append(`
+            <tr>
+                <td colspan="6" class="text-center py-5 no-jobs">
+                    <i class="fas fa-calendar-check fa-3x mb-3 text-muted"></i>
+                    <p class="mb-0">No jobs scheduled for today</p>
+                    <small class="text-muted">Enjoy your day off!</small>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    jobs.forEach(job => {
+        const statusClass = getStatusClass(job.status);
+        const actionButton = getActionButton(job.status, job.id);
+        const scheduledTime = formatTime(job.scheduled_date);
+        
+        const row = `
+            <tr>
+                <td class="job-time">${scheduledTime}</td>
+                <td><strong>${job.client || 'N/A'}</strong></td>
+                <td>${job.service_type || 'N/A'}</td>
+                <td>${job.location || 'N/A'}</td>
+                <td><span class="badge ${statusClass}">${job.status || 'N/A'}</span></td>
+                <td>${actionButton}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function showCurrentJob(job) {
+    $('#currentJobCard').show();
+    const statusClass = getStatusClass(job.status);
+    const scheduledTime = formatTime(job.scheduled_date);
+    
+    $('#currentJobDetails').html(`
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Job ID:</strong> ${job.job_id || 'N/A'}</p>
+                <p><strong>Client:</strong> ${job.client || 'N/A'}</p>
+                <p><strong>Service Type:</strong> ${job.service_type || 'N/A'}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Scheduled Time:</strong> ${scheduledTime}</p>
+                <p><strong>Location:</strong> ${job.location || 'N/A'}</p>
+                <p><strong>Status:</strong> <span class="badge ${statusClass}">${job.status || 'N/A'}</span></p>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p><strong>Description:</strong> ${job.description || 'No description available'}</p>
+        </div>
+        <div class="text-end mt-3">
+            <button class="btn btn-primary me-2" onclick="continueJob(${job.id})">
+                <i class="fas fa-play me-1"></i> Continue Working
+            </button>
+            <button class="btn btn-success" onclick="completeJob(${job.id})">
+                <i class="fas fa-check me-1"></i> Mark Complete
+            </button>
+        </div>
+    `);
+    
+    currentJobId = job.id;
+}
+
+function formatTime(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return 'N/A';
+    }
+}
+
+function getStatusClass(status) {
+    if (!status) return 'bg-secondary';
+    
+    switch(status.toLowerCase()) {
+        case 'completed': return 'bg-success';
+        case 'in_progress': return 'bg-warning';
+        case 'assigned': return 'bg-info';
+        case 'scheduled': return 'bg-primary';
+        case 'pending': return 'bg-secondary';
+        case 'cancelled': return 'bg-danger';
+        case 'on_hold': return 'bg-secondary';
+        default: return 'bg-secondary';
+    }
+}
+
+function getActionButton(status, jobId) {
+    if (!status) return '<button class="btn btn-sm btn-outline-secondary btn-job-action" onclick="viewJob(' + jobId + ')">View</button>';
+    
+    switch(status.toLowerCase()) {
+        case 'completed':
+            return '<button class="btn btn-sm btn-outline-success btn-job-action" onclick="viewJob(' + jobId + ')">View</button>';
+        case 'in_progress':
+            return '<button class="btn btn-sm btn-warning btn-job-action" onclick="continueJob(' + jobId + ')">Continue</button>';
+        case 'assigned': case 'scheduled': case 'pending':
+            return '<button class="btn btn-sm btn-primary btn-job-action" onclick="startJob(' + jobId + ')">Start</button>';
+        case 'cancelled':
+            return '<button class="btn btn-sm btn-outline-danger btn-job-action" onclick="viewJob(' + jobId + ')">Details</button>';
+        case 'on_hold':
+            return '<button class="btn btn-sm btn-outline-warning btn-job-action" onclick="viewJob(' + jobId + ')">On Hold</button>';
+        default:
+            return '<button class="btn btn-sm btn-outline-secondary btn-job-action" onclick="viewJob(' + jobId + ')">View</button>';
+    }
+}
+
+function updateRecentUpdates(updates) {
+    const container = $('#recentUpdates');
+    container.empty();
+    
+    if (updates.length === 0) {
+        container.append('<div class="task-item text-center text-muted py-3">No recent activity</div>');
+        return;
+    }
+    
+    updates.forEach(update => {
+        const timeAgo = getTimeAgo(update.timestamp);
+        const icon = update.type === 'note' ? 'fas fa-sticky-note' : 'fas fa-sync-alt';
+        
+        const item = `
+            <div class="task-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <i class="${icon} me-2 text-primary"></i>
+                        <strong class="text-dark">${update.title || 'Update'}</strong>
+                    </div>
+                    <span class="text-muted small">${timeAgo}</span>
+                </div>
+                <p class="mb-1 text-dark">${update.content || 'No details available'}</p>
+                ${update.job_id ? `<small class="text-muted">Job: ${update.job_id}</small>` : ''}
+            </div>
+        `;
+        container.append(item);
+    });
+}
+
+function getTimeAgo(timestamp) {
+    if (!timestamp) return 'recently';
+    
+    try {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diff = now - time;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'just now';
+        if (minutes < 60) return minutes + 'm ago';
+        if (hours < 24) return hours + 'h ago';
+        return days + 'd ago';
+    } catch (e) {
+        return 'recently';
+    }
+}
+
+// Job Action Functions
+function startJob(jobId) {
+    if (confirm('Are you ready to start this job?')) {
+        updateJobStatus(jobId, 'in_progress', 'Job started successfully!');
+    }
+}
+
+function continueJob(jobId) {
+    showNotification('Continuing with job #' + jobId, 'info');
+    // Implement actual continuation logic here
+}
+
+function completeJob(jobId) {
+    if (confirm('Mark this job as complete?')) {
+        updateJobStatus(jobId, 'completed', 'Job marked as complete!');
+    }
+}
+
+function viewJob(jobId) {
+    window.location.href = '{% url "dashboard:job_detail" 0 %}'.replace('0', jobId);
+}
+
+function updateJobStatus(jobId, status, message) {
+    $.ajax({
+        url: '{% url "dashboard:update_job_status" %}',
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': $('#csrfToken').val()
+        },
+        data: {
+            job_id: jobId,
+            status: status
+        },
+        success: function(response) {
+            if (response.success) {
+                showNotification(message, 'success');
+                loadDashboardData(); // Reload data to reflect changes
+            } else {
+                showNotification('Failed to update job: ' + response.error, 'error');
+            }
+        },
+        error: function(xhr, status, error) {
+            showNotification('Error updating job status: ' + error, 'error');
+        }
+    });
+}
+
+function checkIn() {
+    if (navigator.geolocation) {
+        showNotification('Getting your location...', 'info');
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+                
+                $.ajax({
+                    url: '{% url "dashboard:engineer_check_in" %}',
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': $('#csrfToken').val()
+                    },
+                    data: {
+                        'latitude': latitude,
+                        'longitude': longitude
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            isCheckedIn = true;
+                            currentLocation = { latitude, longitude };
+                            $('#checkInText').text('Check Out');
+                            $('#checkInBtn').removeClass('btn-outline-primary').addClass('btn-success');
+                            $('#locationStatus')
+                                .text('Online - ' + new Date().toLocaleTimeString())
+                                .removeClass('location-offline')
+                                .addClass('location-online');
+                            showNotification('Checked in successfully!', 'success');
+                        } else {
+                            showNotification('Check-in failed: ' + response.error, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showNotification('Error during check-in: ' + error, 'error');
+                    }
+                });
+            },
+            function(error) {
+                showNotification('Unable to get location: ' + error.message, 'error');
+            }
+        );
+    } else {
+        showNotification('Geolocation not supported by your browser', 'error');
+    }
+}
+
+function checkOut() {
+    isCheckedIn = false;
+    currentLocation = null;
+    $('#checkInText').text('Check In');
+    $('#checkInBtn').removeClass('btn-success').addClass('btn-outline-primary');
+    $('#locationStatus')
+        .text('Offline')
+        .removeClass('location-online')
+        .addClass('location-offline');
+    showNotification('Checked out successfully', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    const alertClass = type === 'error' ? 'danger' : type;
+    const icon = type === 'success' ? 'fa-check' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+    
+    const notification = $(`
+        <div class="alert alert-${alertClass} alert-dismissible fade show" role="alert" 
+             style="position: fixed; top: 20px; right: 20px; z-index: 1050; min-width: 300px;">
+            <i class="fas ${icon} me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    setTimeout(function() {
+        notification.alert('close');
+    }, 5000);
+}
+
+function showLoading(show) {
+    if (show) {
+        $('#loadingSpinner').show();
+        $('#errorMessage').hide();
+    } else {
+        $('#loadingSpinner').hide();
+    }
+}
+
+function showError(message) {
+    $('#errorText').text(message);
+    $('#errorMessage').show();
+    $('#loadingSpinner').hide();
+}
+</script>
+{% endblock %}

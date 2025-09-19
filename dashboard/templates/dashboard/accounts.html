@@ -1,0 +1,186 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Accounts Dashboard - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Accounts Team Dashboard</h3>
+    <div>
+        <button class="btn btn-primary me-2"><i class="fas fa-file-invoice"></i> Create Invoice</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-filter"></i> Filter</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">$24,560</div>
+            <div class="label">Outstanding Invoices</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">$18,990</div>
+            <div class="label">Received This Month</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">12</div>
+            <div class="label">Overdue Invoices</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">45</div>
+            <div class="label">Invoices This Month</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <h5>Revenue Overview</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-chart-bar"></i>
+                <p>Revenue charts will be displayed here</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Recent Invoices</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>INV-00892</td>
+                            <td>TechCorp</td>
+                            <td>Oct 12, 2023</td>
+                            <td>$2,450.00</td>
+                            <td>Oct 26, 2023</td>
+                            <td><span class="badge bg-success">Paid</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1">View</button>
+                                <button class="btn btn-sm btn-outline-secondary">PDF</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>INV-00876</td>
+                            <td>DataSystems</td>
+                            <td>Oct 10, 2023</td>
+                            <td>$3,780.00</td>
+                            <td>Oct 24, 2023</td>
+                            <td><span class="badge bg-warning">Pending</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1">View</button>
+                                <button class="btn btn-sm btn-outline-secondary">PDF</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>INV-00845</td>
+                            <td>OfficePlus</td>
+                            <td>Oct 5, 2023</td>
+                            <td>$1,950.00</td>
+                            <td>Oct 19, 2023</td>
+                            <td><span class="badge bg-danger">Overdue</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1">View</button>
+                                <button class="btn btn-sm btn-outline-warning">Remind</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Payment Status</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-money-bill-wave"></i>
+                <p>Payment status charts will be displayed here</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Quick Actions</h5>
+            <div class="quick-actions">
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-file-invoice me-2"></i> Create Invoice</button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-file-export me-2"></i> Export Reports</button>
+                <button class="btn btn-outline-primary w-100 text-start mb-2"><i class="fas fa-envelope me-2"></i> Send Reminders</button>
+                <button class="btn btn-outline-primary w-100 text-start"><i class="fas fa-chart-line me-2"></i> Financial Reports</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Expense Tracking</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-receipt"></i>
+                <p>Expense tracking will be displayed here</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>Top Clients by Revenue</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Revenue</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TechCorp</td>
+                            <td>$42,500</td>
+                            <td><span class="badge bg-success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>DataSystems</td>
+                            <td>$31,200</td>
+                            <td><span class="badge bg-success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>OfficePlus</td>
+                            <td>$28,700</td>
+                            <td><span class="badge bg-success">Active</span></td>
+                        </tr>
+                        <tr>
+                            <td>GlobalTech</td>
+                            <td>$18,300</td>
+                            <td><span class="badge bg-warning">Pending</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="dashboard-card">
+            <h5>Payment Methods</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-credit-card"></i>
+                <p>Payment method statistics will be displayed here</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

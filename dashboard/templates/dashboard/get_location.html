@@ -1,0 +1,135 @@
+{% extends '../dashboard/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="dashboard-card">
+                <h4 class="text-center mb-4">Get Current Location</h4>
+                
+                <div id="locationStatus" class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Requesting location access...
+                </div>
+                
+                <div class="text-center">
+                    <button id="getLocationBtn" class="btn btn-primary mb-3">
+                        <i class="fas fa-map-marker-alt"></i> Get My Location
+                    </button>
+                    
+                    <div id="locationData" class="d-none">
+                        <p><strong>Latitude:</strong> <span id="latitude"></span></p>
+                        <p><strong>Longitude:</strong> <span id="longitude"></span></p>
+                        <p><strong>Address:</strong> <span id="address"></span></p>
+                        
+                        <form id="locationForm" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="latitude" id="formLatitude">
+                            <input type="hidden" name="longitude" id="formLongitude">
+                            <input type="hidden" name="address" id="formAddress">
+                            
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Confirm Check-In
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const locationStatus = document.getElementById('locationStatus');
+        const getLocationBtn = document.getElementById('getLocationBtn');
+        const locationData = document.getElementById('locationData');
+        const latitudeSpan = document.getElementById('latitude');
+        const longitudeSpan = document.getElementById('longitude');
+        const addressSpan = document.getElementById('address');
+        const formLatitude = document.getElementById('formLatitude');
+        const formLongitude = document.getElementById('formLongitude');
+        const formAddress = document.getElementById('formAddress');
+        const locationForm = document.getElementById('locationForm');
+        
+        // Set form action based on job ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('job_id');
+        if (jobId) {
+            locationForm.action = `/dashboard/engineer/jobs/${jobId}/check-in-location/`;
+        }
+        
+        getLocationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting location...';
+                locationStatus.className = 'alert alert-warning';
+                
+                navigator.geolocation.getCurrentPosition(
+                    async function(position) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        
+                        // Try to get address using reverse geocoding
+                        let address = 'Location coordinates';
+                        try {
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+                            const data = await response.json();
+                            if (data.display_name) {
+                                address = data.display_name;
+                            }
+                        } catch (error) {
+                            console.error('Error getting address:', error);
+                        }
+                        
+                        // Update UI
+                        latitudeSpan.textContent = latitude;
+                        longitudeSpan.textContent = longitude;
+                        addressSpan.textContent = address;
+                        
+                        // Set form values
+                        formLatitude.value = latitude;
+                        formLongitude.value = longitude;
+                        formAddress.value = address;
+                        
+                        // Show location data
+                        locationData.classList.remove('d-none');
+                        locationStatus.innerHTML = '<i class="fas fa-check-circle"></i> Location obtained successfully!';
+                        locationStatus.className = 'alert alert-success';
+                    },
+                    function(error) {
+                        let errorMessage = 'Unable to get your location. ';
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage += 'Permission denied.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage += 'Location information unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage += 'Location request timed out.';
+                                break;
+                            default:
+                                errorMessage += 'Unknown error occurred.';
+                        }
+                        
+                        locationStatus.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${errorMessage}`;
+                        locationStatus.className = 'alert alert-danger';
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    }
+                );
+            } else {
+                locationStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Geolocation is not supported by your browser.';
+                locationStatus.className = 'alert alert-danger';
+            }
+        });
+        
+        // Auto-trigger location request
+        getLocationBtn.click();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Manager Dashboard - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Project Manager Dashboard</h3>
+    <!-- <div>
+        <button class="btn btn-primary me-2"><i class="fas fa-plus"></i> New Job</button>
+        <button class="btn btn-outline-primary"><i class="fas fa-filter"></i> Filter</button>
+    </div> -->
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">15</div>
+            <div class="label">Active Projects</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">8</div>
+            <div class="label">Overdue Tasks</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">23</div>
+            <div class="label">Available Engineers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">78%</div>
+            <div class="label">Project Completion</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <h5>Project Timeline</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-map-marked-alt"></i>
+                <p>Interactive Project Timeline View</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Engineer Locations</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-map-marker-alt"></i>
+                <p>Live Engineer Tracking Map</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Priority Tasks</h5>
+            <div class="priority-tasks">
+                <div class="task-item high-priority">
+                    <div class="d-flex justify-content-between">
+                        <strong>Server Maintenance</strong>
+                        <span class="badge bg-danger">High</span>
+                    </div>
+                    <p>Client: TechCorp • Due: Today</p>
+                    <small>Assigned to: Sarah Johnson</small>
+                </div>
+                <div class="task-item medium-priority">
+                    <div class="d-flex justify-content-between">
+                        <strong>Network Installation</strong>
+                        <span class="badge bg-warning">Medium</span>
+                    </div>
+                    <p>Client: DataSystems • Due: Tomorrow</p>
+                    <small>Assigned to: Michael Chen</small>
+                </div>
+                <div class="task-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Software Update</strong>
+                        <span class="badge bg-info">Low</span>
+                    </div>
+                    <p>Client: OfficePlus • Due: 3 days</p>
+                    <small>Assigned to: James Wilson</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Team Performance</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-chart-pie"></i>
+                <p>Team performance metrics will be displayed here</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="dashboard-card">
+            <h5>Recent Job Assignments</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Client</th>
+                            <th>Engineer</th>
+                            <th>Assigned On</th>
+                            <th>Deadline</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>JOB-00892</td>
+                            <td>TechCorp</td>
+                            <td>Sarah Johnson</td>
+                            <td>Oct 12, 2023</td>
+                            <td>Oct 15, 2023</td>
+                            <td><span class="badge bg-warning">In Progress</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>JOB-00876</td>
+                            <td>DataSystems</td>
+                            <td>Michael Chen</td>
+                            <td>Oct 11, 2023</td>
+                            <td>Oct 14, 2023</td>
+                            <td><span class="badge bg-info">Scheduled</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>JOB-00845</td>
+                            <td>OfficePlus</td>
+                            <td>James Wilson</td>
+                            <td>Oct 10, 2023</td>
+                            <td>Oct 13, 2023</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                            <td><button class="btn btn-sm btn-outline-primary">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Add New Engineer - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Add New Engineer</h3>
+    <div>
+        <a href="{% url 'dashboard:manager_engineers' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Engineers
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <h5 class="mb-4">User Account Information</h5>
+                <!-- In the User Account Information section -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label for="{{ user_form.username.id_for_label }}" class="form-label">Username *</label>
+        {{ user_form.username }}
+        <div class="form-text">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+    </div>
+    <div class="col-md-6">
+        <label for="{{ user_form.email.id_for_label }}" class="form-label">Email *</label>
+        {{ user_form.email }}
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name *</label>
+        {{ user_form.first_name }}
+    </div>
+    <div class="col-md-6">
+        <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+        {{ user_form.last_name }}
+    </div>
+</div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ user_form.password1.id_for_label }}" class="form-label">Password *</label>
+                        {{ user_form.password1 }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ user_form.password2.id_for_label }}" class="form-label">Password Confirmation *</label>
+                        {{ user_form.password2 }}
+                        <div class="form-text">Enter the same password as before, for verification.</div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h5 class="mb-4">Engineer Profile Information</h5>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ profile_form.employee_id.id_for_label }}" class="form-label">Employee ID</label>
+                        {{ profile_form.employee_id }}
+                        <div class="form-text">Leave blank to auto-generate (ENG-XXXX)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ profile_form.skill_level.id_for_label }}" class="form-label">Skill Level *</label>
+                        {{ profile_form.skill_level }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ profile_form.hourly_rate.id_for_label }}" class="form-label">Hourly Rate ($) *</label>
+                        {{ profile_form.hourly_rate }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ profile_form.max_hours_per_week.id_for_label }}" class="form-label">Max Hours/Week</label>
+                        {{ profile_form.max_hours_per_week }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ profile_form.skills.id_for_label }}" class="form-label">Skills</label>
+                    {{ profile_form.skills }}
+                    <div class="form-text">Hold down "Control" (Windows) or "Command" (Mac) to select multiple skills.</div>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    {{ profile_form.is_available }}
+                    <label for="{{ profile_form.is_available.id_for_label }}" class="form-check-label">Available for assignments</label>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Create Engineer</button>
+                    <a href="{% url 'dashboard:manager_engineers' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Quick Tips</h5>
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="fas fa-info-circle text-primary me-2"></i> Username must be unique</li>
+                <li class="mb-2"><i class="fas fa-key text-primary me-2"></i> Use a strong password</li>
+                <li class="mb-2"><i class="fas fa-id-badge text-primary me-2"></i> Employee ID will be auto-generated if left blank</li>
+                <li class="mb-2"><i class="fas fa-dollar-sign text-primary me-2"></i> Set appropriate hourly rate</li>
+                <li class="mb-2"><i class="fas fa-tasks text-primary me-2"></i> Select relevant skills</li>
+                <li class="mb-2"><i class="fas fa-toggle-on text-primary me-2"></i> Mark as available if ready for assignments</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enhance form selects
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('form-select');
+        });
+        
+        // Enhance form inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-check-input')) {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

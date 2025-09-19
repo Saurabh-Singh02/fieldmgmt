@@ -1,0 +1,228 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Engineer Details - {{ engineer.user.get_full_name }} - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Engineer Details: {{ engineer.user.get_full_name }}</h3>
+    <div>
+        <a href="{% url 'dashboard:manager_engineers' %}" class="btn btn-secondary me-2">
+            <i class="fas fa-arrow-left"></i> Back to Engineers
+        </a>
+        <a href="{% url 'dashboard:edit_engineer' engineer.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit Profile
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Basic Information Card -->
+        <div class="dashboard-card">
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="https://ui-avatars.com/api/?name={{ engineer.user.get_full_name }}&background=4361ee&color=fff&size=100" 
+                         class="rounded-circle mb-3" alt="Profile">
+                    <h5>{{ engineer.user.get_full_name }}</h5>
+                    <p class="text-muted">{{ engineer.employee_id }}</p>
+                    <span class="badge bg-{% if engineer.is_available %}success{% else %}secondary{% endif %}">
+                        {% if engineer.is_available %}Available{% else %}Unavailable{% endif %}
+                    </span>
+                </div>
+                <div class="col-md-9">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Email:</strong> {{ engineer.user.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Skill Level:</strong>
+                            <span class="badge bg-{% if engineer.skill_level == 'senior' %}primary{% elif engineer.skill_level == 'mid' %}info{% else %}secondary{% endif %}">
+                                {{ engineer.get_skill_level_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Hourly Rate:</strong> ${{ engineer.hourly_rate }}/hr
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Max Hours/Week:</strong> {{ engineer.max_hours_per_week|default:"Not set" }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Skills:</strong>
+                        <div class="mt-1">
+                            {% for skill in engineer.skills.all %}
+                                <span class="badge bg-secondary me-1">{{ skill.name }}</span>
+                            {% empty %}
+                                <span class="text-muted">No skills added</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Performance Stats Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Performance Statistics</h5>
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">{{ assigned_jobs_count }}</div>
+                        <div class="label">Total Jobs</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">{{ completed_jobs_count }}</div>
+                        <div class="label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">{{ ongoing_jobs_count }}</div>
+                        <div class="label">In Progress</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="number">{{ avg_rating }}/5</div>
+                        <div class="label">Avg Rating</div>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="row text-center mt-3">
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="number">{{ total_hours }}h</div>
+                        <div class="label">Total Hours</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="number">${{ engineer.hourly_rate|floatformat:2 }}</div>
+                        <div class="label">Hourly Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Jobs Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Recent Jobs</h5>
+            
+            {% if recent_jobs %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Status</th>
+                            <th>Scheduled Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in recent_jobs %}
+                        <tr>
+                            <td>{{ job.job_id }}</td>
+                            <td>{{ job.title }}</td>
+                            <td>{{ job.client.name }}</td>
+                            <td>
+                                <span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'in_progress' %}warning{% elif job.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                    {{ job.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ job.scheduled_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No jobs assigned yet.</p>
+            {% endif %}
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'dashboard:manager_jobs' %}?engineer={{ engineer.id }}" class="btn btn-outline-primary">
+                    View All Jobs
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Actions Card -->
+        <div class="dashboard-card">
+            <h5>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <form method="POST" action="{% url 'dashboard:toggle_engineer_availability' engineer.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-{% if engineer.is_available %}warning{% else %}success{% endif %} w-100 text-start">
+                        <i class="fas fa-toggle-{% if engineer.is_available %}on{% else %}off{% endif %} me-2"></i>
+                        {% if engineer.is_available %}Make Unavailable{% else %}Make Available{% endif %}
+                    </button>
+                </form>
+                
+                <a href="{% url 'dashboard:edit_engineer' engineer.id %}" class="btn btn-outline-primary text-start">
+                    <i class="fas fa-edit me-2"></i> Edit Profile
+                </a>
+                
+                <a href="#" class="btn btn-outline-primary text-start">
+                    <i class="fas fa-tasks me-2"></i> Assign New Job
+                </a>
+                
+                <a href="#" class="btn btn-outline-primary text-start">
+                    <i class="fas fa-chart-line me-2"></i> View Performance Report
+                </a>
+            </div>
+        </div>
+        
+        <!-- Availability History Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Availability History</h5>
+            <p class="text-muted">Last updated: {{ engineer.updated_at|date:"M d, Y H:i" }}</p>
+            
+            <div class="availability-chart">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="flex-grow-1">Current Week</div>
+                    <div class="badge bg-success">Available</div>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="flex-grow-1">Previous Week</div>
+                    <div class="badge bg-success">Available</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">2 Weeks Ago</div>
+                    <div class="badge bg-secondary">Unavailable</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Information Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Contact Information</h5>
+            <p><strong>Email:</strong> {{ engineer.user.email }}</p>
+            <p><strong>Phone:</strong> 
+                {% if engineer.user.phone %}
+                    {{ engineer.user.phone }}
+                {% else %}
+                    <span class="text-muted">Not provided</span>
+                {% endif %}
+            </p>
+            <p><strong>Address:</strong> 
+                {% if engineer.user.address %}
+                    {{ engineer.user.address|truncatewords:5 }}
+                {% else %}
+                    <span class="text-muted">Not provided</span>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

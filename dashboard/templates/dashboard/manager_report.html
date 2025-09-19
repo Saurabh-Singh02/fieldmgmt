@@ -1,0 +1,129 @@
+{# dashboard/templates/dashboard/manager_report.html #}
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h2 class="mb-4">📊 Manager Reports</h2>
+
+  <!-- Filter Card -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <strong>Filter Options</strong>
+    </div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          {{ form.engineer.label_tag }}
+          {{ form.engineer }}
+        </div>
+        <div class="col-md-3">
+          {{ form.client.label_tag }}
+          {{ form.client }}
+        </div>
+        <div class="col-md-3">
+          {{ form.job.label_tag }}
+          {{ form.job }}
+        </div>
+        <div class="col-md-3">
+          {{ form.start_date.label_tag }}
+          {{ form.start_date }}
+        </div>
+        <div class="col-md-3">
+          {{ form.end_date.label_tag }}
+          {{ form.end_date }}
+        </div>
+
+        <div class="col-12 mt-2">
+          <label class="form-label"><strong>Select Columns</strong></label>
+          <div class="d-flex flex-wrap gap-3">
+            {% for checkbox in form.fields %}
+              <div class="form-check">
+                {{ checkbox.tag }}
+                {{ checkbox.choice_label }}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-between mt-3">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-funnel"></i> Apply Filters
+          </button>
+          {% if request.GET %}
+            <a class="btn btn-outline-primary" href="?{{ request.GET.urlencode }}&export=1">
+              <i class="bi bi-download"></i> Export CSV
+            </a>
+          {% else %}
+            <a class="btn btn-outline-primary" href="?export=1">
+              <i class="bi bi-download"></i> Export CSV
+            </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Card -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-light">
+      <strong>Results</strong>
+      <span class="text-muted small float-end">
+        Page {{ jobs_page.number }} of {{ jobs_page.paginator.num_pages }} —
+        {{ jobs_page.paginator.count }} records
+      </span>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            {% for h in selected_headers %}
+              <th>{{ h }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              {% for cell in row %}
+                <td>{{ cell }}</td>
+              {% endfor %}
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="{{ selected_headers|length }}" class="text-center text-muted">
+                No results found
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="card-footer d-flex justify-content-center">
+      <nav>
+        <ul class="pagination mb-0">
+          {% if jobs_page.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ jobs_page.previous_page_number }}">
+                Previous
+              </a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">
+            Page {{ jobs_page.number }} / {{ jobs_page.paginator.num_pages }}
+          </span></li>
+          {% if jobs_page.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ jobs_page.next_page_number }}">
+                Next
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}

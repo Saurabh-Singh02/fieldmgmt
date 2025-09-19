@@ -1,0 +1,24 @@
+<!-- templates/dashboard/job_detail.html -->
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Job Details - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Job Details</h3>
+    <button class="btn btn-outline-secondary" onclick="history.back()">Back to Dashboard</button>
+</div>
+
+<div class="dashboard-card">
+    <h5>Job #{{ job_id }}</h5>
+    <p>Detailed job information will be displayed here.</p>
+    <p>Features coming soon:</p>
+    <ul>
+        <li>Complete job information</li>
+        <li>Client details</li>
+        <li>Task instructions</li>
+        <li>Time tracking</li>
+        <li>Notes and updates</li>
+    </ul>
+</div>
+{% endblock %}

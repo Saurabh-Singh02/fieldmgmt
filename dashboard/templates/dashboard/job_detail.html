@@ -1,0 +1,179 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Job Details - {{ job.job_id }} - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Job Details: {{ job.job_id }}</h3>
+    <div>
+        <a href="{% url 'dashboard:manager_jobs' %}" class="btn btn-secondary me-2">
+            <i class="fas fa-arrow-left"></i> Back to Jobs
+        </a>
+        <a href="{% url 'dashboard:edit_job' job.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit Job
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Info Column -->
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <h5>Basic Information</h5>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Title:</strong> {{ job.title }}</div>
+                <div class="col-md-6">
+                    <strong>Status:</strong>
+                    <span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'in_progress' %}warning{% elif job.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                        {{ job.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Priority:</strong>
+                    <span class="badge bg-{% if job.priority == 'high' %}danger{% elif job.priority == 'medium' %}warning{% elif job.priority == 'urgent' %}dark{% else %}secondary{% endif %}">
+                        {{ job.get_priority_display }}
+                    </span>
+                </div>
+                <div class="col-md-6"><strong>Service Type:</strong> {{ job.service_type.name }}</div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Description:</strong>
+                <p>{{ job.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <div class="dashboard-card mt-4">
+            <h5>Assignment Details</h5>
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Client:</strong> {{ job.client.name }}</div>
+                <div class="col-md-6">
+                    <strong>Client Contact:</strong>
+                    {% if job.client_contact %}
+                        {{ job.client_contact.user.get_full_name }} ({{ job.client_contact.position }})
+                    {% else %}
+                        <span class="text-muted">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Assigned Engineer:</strong>
+                    {% if job.assigned_engineer %}
+                        {{ job.assigned_engineer.user.get_full_name }} ({{ job.assigned_engineer.employee_id }})
+                    {% else %}
+                        <span class="text-muted">Not assigned</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <strong>Scheduled Date:</strong> {{ job.scheduled_date|date:"M d, Y H:i" }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6"><strong>Estimated Duration:</strong> {{ job.estimated_duration }} minutes</div>
+                <div class="col-md-6"><strong>Created By:</strong> {{ job.created_by.get_full_name }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side Column -->
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Location Information</h5>
+            <p><strong>Location:</strong> {{ job.location }}</p>
+            {% if job.latitude and job.longitude %}
+                <p><strong>Coordinates:</strong> {{ job.latitude }}, {{ job.longitude }}</p>
+                <div class="map-container mt-3">
+                    <i class="fas fa-map-marked-alt fa-2x"></i>
+                    <p class="mt-2">Map would be displayed here</p>
+                </div>
+            {% else %}
+                <p class="text-muted">No coordinates provided</p>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <a href="{% url 'dashboard:edit_job' job.id %}" class="btn btn-outline-primary text-start">
+                    <i class="fas fa-edit me-2"></i> Edit Job Details
+                </a>
+
+                <!-- Assign Engineer Form -->
+                <form method="POST" action="{% url 'dashboard:assign_engineer' job.id %}" class="mb-2">
+                    {% csrf_token %}
+                    <label class="form-label">Assign Engineer</label>
+                    <select class="form-select mb-2" name="engineer_id">
+                        <option value="">-- Select Engineer --</option>
+                        {% for engineer in available_engineers %}
+                            <option value="{{ engineer.id }}" {% if job.assigned_engineer.id == engineer.id %}selected{% endif %}>
+                                {{ engineer.user.get_full_name }} ({{ engineer.employee_id }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary w-100 text-start">
+                        <i class="fas fa-user me-2"></i> Update Assignment
+                    </button>
+                </form>
+
+                <!-- Update Schedule Form -->
+                <form method="POST" action="{% url 'dashboard:update_schedule' job.id %}" class="mb-2">
+                    {% csrf_token %}
+                    <label class="form-label">Update Schedule</label>
+                    <input type="datetime-local" class="form-control mb-2" name="scheduled_date"
+                           value="{{ job.scheduled_date|date:'Y-m-d\TH:i' }}">
+                    <input type="number" class="form-control mb-2" name="estimated_duration"
+                           value="{{ job.estimated_duration|default_if_none:60 }}">
+                    <button type="submit" class="btn btn-outline-primary w-100 text-start">
+                        <i class="fas fa-clock me-2"></i> Update Schedule
+                    </button>
+                </form>
+
+                <!-- Add Note Button -->
+                <button type="button" class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                    <i class="fas fa-sticky-note me-2"></i> Add Note
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNoteModalLabel">Add Note to Job</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'dashboard:add_job_note_manager' job.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="note_type" class="form-label">Note Type</label>
+                        <select class="form-select" id="note_type" name="note_type" required>
+                            <option value="text">Text Note</option>
+                            <option value="voice">Voice Note</option>
+                            <option value="image">Image Note</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

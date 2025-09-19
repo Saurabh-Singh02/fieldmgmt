@@ -1,0 +1,138 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Add New Job - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Add New Job</h3>
+    <div>
+        <a href="{% url 'dashboard:manager_jobs' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Jobs
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Please correct the errors below:</strong>
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">Job Title</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.service_type.id_for_label }}" class="form-label">Service Type</label>
+                        {{ form.service_type }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    {{ form.description }}
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.client.id_for_label }}" class="form-label">Client</label>
+                        {{ form.client }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.client_contact.id_for_label }}" class="form-label">Client Contact (Optional)</label>
+                        {{ form.client_contact }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.assigned_engineer.id_for_label }}" class="form-label">Assign Engineer (Optional)</label>
+                        {{ form.assigned_engineer }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                        {{ form.priority }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.scheduled_date.id_for_label }}" class="form-label">Scheduled Date & Time</label>
+                        {{ form.scheduled_date }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">Estimated Duration (minutes)</label>
+                        {{ form.estimated_duration }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                    {{ form.location }}
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.latitude.id_for_label }}" class="form-label">Latitude (Optional)</label>
+                        {{ form.latitude }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.longitude.id_for_label }}" class="form-label">Longitude (Optional)</label>
+                        {{ form.longitude }}
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Create Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>Quick Tips</h5>
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="fas fa-info-circle text-primary me-2"></i> Fill in all required fields marked with *</li>
+                <li class="mb-2"><i class="fas fa-clock text-primary me-2"></i> Set realistic estimated durations</li>
+                <li class="mb-2"><i class="fas fa-map-marker-alt text-primary me-2"></i> Provide accurate location details</li>
+                <li class="mb-2"><i class="fas fa-exclamation-triangle text-primary me-2"></i> Assign appropriate priority levels</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Enhance form selects with better styling
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('form-select');
+        });
+        
+        // Enhance form inputs
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-select')) {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Engineer Management - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Engineer Management</h3>
+    <div>
+        <a href="{% url 'dashboard:add_engineer' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Engineer
+        </a>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ total_engineers }}</div>
+            <div class="label">Total Engineers</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ available_engineers }}</div>
+            <div class="label">Available Engineers</div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Filters -->
+<div class="dashboard-card mb-4">
+    <h5>Filters</h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="availability" class="form-label">Availability</label>
+            <select class="form-select" id="availability" name="availability">
+                <option value="">All</option>
+                <option value="available" {% if availability_filter == 'available' %}selected{% endif %}>Available</option>
+                <option value="unavailable" {% if availability_filter == 'unavailable' %}selected{% endif %}>Unavailable</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="skill" class="form-label">Skill</label>
+            <select class="form-select" id="skill" name="skill">
+                <option value="">All Skills</option>
+                {% for skill in skills %}
+                    {% if skill %}
+                    <option value="{{ skill }}" {% if skill_filter == skill %}selected{% endif %}>{{ skill }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:manager_engineers' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Engineers List -->
+<div class="dashboard-card">
+    <h5>All Engineers</h5>
+    
+    {% if engineers %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Skills</th>
+                    <th>Skill Level</th>
+                    <th>Hourly Rate</th>
+                    <th>Availability</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for engineer in engineers %}
+                <tr>
+                    <td>{{ engineer.employee_id }}</td>
+                    <td>
+                        <strong>{{ engineer.user.get_full_name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ engineer.user.email }}</small>
+                    </td>
+                    <td>
+                        {% for skill in engineer.skills.all|slice:":3" %}
+                            <span class="badge bg-secondary me-1">{{ skill.name }}</span>
+                        {% endfor %}
+                        {% if engineer.skills.count > 3 %}
+                            <span class="badge bg-light text-dark">+{{ engineer.skills.count|add:-3 }} more</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-{% if engineer.skill_level == 'senior' %}primary{% elif engineer.skill_level == 'mid' %}info{% else %}secondary{% endif %}">
+                            {{ engineer.get_skill_level_display }}
+                        </span>
+                    </td>
+                    <td>${{ engineer.hourly_rate }}/hr</td>
+                    <td>
+                        <span class="badge bg-{% if engineer.is_available %}success{% else %}secondary{% endif %}">
+                            {% if engineer.is_available %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'dashboard:engineer_detail' engineer.id %}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <a href="{% url 'dashboard:edit_engineer' engineer.id %}" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form method="POST" action="{% url 'dashboard:toggle_engineer_availability' engineer.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-{% if engineer.is_available %}warning{% else %}success{% endif %}">
+                                <i class="fas fa-toggle-{% if engineer.is_available %}on{% else %}off{% endif %}"></i>
+                                {% if engineer.is_available %}Make Unavailable{% else %}Make Available{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No engineers found. <a href="{% url 'dashboard:add_engineer' %}">Add your first engineer</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

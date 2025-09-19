@@ -1,0 +1,123 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Admin Dashboard - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Admin Dashboard</h3>
+    <div>
+        <button class="btn btn-outline-primary me-2"><i class="fas fa-bell"></i> <span class="badge bg-danger">3</span></button>
+        <button class="btn btn-outline-primary"><i class="fas fa-cog"></i> Settings</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ total_engineers }}</div>
+            <div class="label">Active Engineers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ total_jobs }}</div>
+            <div class="label">Total Jobs</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ pending_invoices }}</div>
+            <div class="label">Pending Invoices</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="dashboard-card stat-card">
+            <div class="number">{{ total_clients }}</div>
+            <div class="label">Active Clients</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="dashboard-card">
+            <h5>System Overview</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-chart-line"></i>
+                <p>Performance charts will be displayed here</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Recent Jobs</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in recent_jobs %}
+                        <tr>
+                            <td>{{ job.job_id }}</td>
+                            <td>{{ job.title }}</td>
+                            <td>{{ job.client.name }}</td>
+                            <td><span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'in_progress' %}warning{% else %}info{% endif %}">{{ job.get_status_display }}</span></td>
+                            <td>{{ job.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No jobs found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-card">
+            <h5>User Distribution</h5>
+            <div class="module-placeholder">
+                <i class="fas fa-users"></i>
+                <p>User statistics will be displayed here</p>
+            </div>
+        </div>
+        
+        <div class="dashboard-card">
+            <h5>Recent Invoices</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Client</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in recent_invoices %}
+                        <tr>
+                            <td>{{ invoice.invoice_number }}</td>
+                            <td>{{ invoice.client.name }}</td>
+                            <td>${{ invoice.total_amount }}</td>
+                            <td><span class="badge bg-{% if invoice.status == 'paid' %}success{% elif invoice.status == 'sent' %}warning{% else %}secondary{% endif %}">{{ invoice.get_status_display }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No invoices found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

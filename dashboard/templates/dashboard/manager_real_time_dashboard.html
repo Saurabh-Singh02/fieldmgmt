@@ -1,0 +1,235 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Real-Time Job Updates - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Real-Time Job Updates</h3>
+    <div>
+        <span class="badge bg-{% if updates_enabled %}success{% else %}secondary{% endif %} me-2" id="statusBadge">
+            {% if updates_enabled %}LIVE{% else %}PAUSED{% endif %}
+        </span>
+        <button id="toggleUpdates" class="btn btn-{% if updates_enabled %}warning{% else %}success{% endif %} me-2">
+            <i class="fas fa-{% if updates_enabled %}pause{% else %}play{% endif %}"></i>
+            {% if updates_enabled %}Pause{% else %}Resume{% endif %} Updates
+        </button>
+        <a href="{% url 'dashboard:manager_jobs' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Jobs
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Job Updates Card -->
+        <div class="dashboard-card">
+            <h5>Recent Job Updates <span class="badge bg-primary" id="updateCount">0</span></h5>
+            
+            <div id="jobUpdatesList" class="updates-list">
+                <div class="text-center py-4">
+                    <i class="fas fa-sync fa-spin fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">Loading real-time updates...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Notifications Card -->
+        <div class="dashboard-card">
+            <h5>Recent Notifications <span class="badge bg-danger" id="notificationCount">0</span></h5>
+            
+            <div id="notificationsList" class="notifications-list">
+                <div class="text-center py-4">
+                    <i class="fas fa-bell fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">Loading notifications...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Update Statistics</h5>
+            <div class="stats-container">
+                <p>Last Update: <span id="lastUpdateTime">Never</span></p>
+                <p>Total Updates: <span id="totalUpdates">0</span></p>
+                <p>Active Jobs: <span id="activeJobs">0</span></p>
+                <p>Engineers Working: <span id="engineersWorking">0</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let updatesEnabled = true;
+        let lastUpdateTime = null;
+        let updateInterval = null;
+        
+        const jobUpdatesList = document.getElementById('jobUpdatesList');
+        const notificationsList = document.getElementById('notificationsList');
+        const statusBadge = document.getElementById('statusBadge');
+        const toggleButton = document.getElementById('toggleUpdates');
+        const updateCount = document.getElementById('updateCount');
+        const notificationCount = document.getElementById('notificationCount');
+        const lastUpdateTimeElement = document.getElementById('lastUpdateTime');
+        const totalUpdatesElement = document.getElementById('totalUpdates');
+        
+        let totalUpdates = 0;
+        
+        // Function to fetch real-time updates
+        function fetchRealTimeUpdates() {
+            if (!updatesEnabled) return;
+            
+            const url = new URL('{% url "dashboard:manager_real_time_updates" %}', window.location.origin);
+            if (lastUpdateTime) {
+                url.searchParams.append('last_update', lastUpdateTime);
+            }
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update last update time
+                    lastUpdateTime = data.current_time;
+                    lastUpdateTimeElement.textContent = new Date(lastUpdateTime).toLocaleString();
+                    
+                    // Process job updates
+                    if (data.updated_jobs && data.updated_jobs.length > 0) {
+                        totalUpdates += data.updated_jobs.length;
+                        totalUpdatesElement.textContent = totalUpdates;
+                        updateCount.textContent = data.updated_jobs.length;
+                        
+                        // Clear loading state
+                        if (jobUpdatesList.querySelector('.text-center')) {
+                            jobUpdatesList.innerHTML = '';
+                        }
+                        
+                        // Add new job updates
+                        data.updated_jobs.forEach(job => {
+                            const updateElement = createJobUpdateElement(job);
+                            jobUpdatesList.prepend(updateElement);
+                        });
+                        
+                        // Keep only the last 20 updates
+                        const allUpdates = jobUpdatesList.querySelectorAll('.job-update-item');
+                        if (allUpdates.length > 20) {
+                            for (let i = 20; i < allUpdates.length; i++) {
+                                allUpdates[i].remove();
+                            }
+                        }
+                    }
+                    
+                    // Process notifications
+                    if (data.notifications && data.notifications.length > 0) {
+                        notificationCount.textContent = data.notifications.length;
+                        
+                        // Clear loading state
+                        if (notificationsList.querySelector('.text-center')) {
+                            notificationsList.innerHTML = '';
+                        }
+                        
+                        // Add new notifications
+                        data.notifications.forEach(notification => {
+                            const notificationElement = createNotificationElement(notification);
+                            notificationsList.prepend(notificationElement);
+                        });
+                        
+                        // Keep only the last 10 notifications
+                        const allNotifications = notificationsList.querySelectorAll('.notification-item');
+                        if (allNotifications.length > 10) {
+                            for (let i = 10; i < allNotifications.length; i++) {
+                                allNotifications[i].remove();
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching real-time updates:', error);
+                    statusBadge.className = 'badge bg-danger';
+                    statusBadge.textContent = 'ERROR';
+                });
+        }
+        
+        // Function to create job update element
+        function createJobUpdateElement(job) {
+            const div = document.createElement('div');
+            div.className = 'job-update-item mb-3 p-3 border rounded';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong>${job.title}</strong>
+                    <small class="text-muted">${new Date(job.last_updated).toLocaleTimeString()}</small>
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-1">${job.job_id}</span>
+                    <span class="badge bg-info me-1">${job.status}</span>
+                    <span class="badge bg-${job.priority === 'High' ? 'danger' : job.priority === 'Medium' ? 'warning' : 'secondary'}">${job.priority}</span>
+                </div>
+                <p class="mb-1"><strong>Client:</strong> ${job.client}</p>
+                <p class="mb-1"><strong>Engineer:</strong> ${job.assigned_engineer}</p>
+                <p class="mb-1"><strong>Updated by:</strong> ${job.updated_by}</p>
+                <div class="text-end">
+                    <a href="/dashboard/manager/jobs/${job.id}/" class="btn btn-sm btn-outline-primary">View Job</a>
+                </div>
+            `;
+            return div;
+        }
+        
+        // Function to create notification element
+        function createNotificationElement(notification) {
+            const div = document.createElement('div');
+            div.className = 'notification-item mb-3 p-3 border rounded';
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong>${notification.title}</strong>
+                    <small class="text-muted">${new Date(notification.created_at).toLocaleTimeString()}</small>
+                </div>
+                <p class="mb-2">${notification.message}</p>
+                <small class="text-muted">${new Date(notification.created_at).toLocaleDateString()}</small>
+            `;
+            return div;
+        }
+        
+        // Toggle updates function
+        function toggleUpdates() {
+            updatesEnabled = !updatesEnabled;
+            
+            if (updatesEnabled) {
+                statusBadge.className = 'badge bg-success';
+                statusBadge.textContent = 'LIVE';
+                toggleButton.className = 'btn btn-warning me-2';
+                toggleButton.innerHTML = '<i class="fas fa-pause"></i> Pause Updates';
+                // Restart the interval
+                updateInterval = setInterval(fetchRealTimeUpdates, 5000);
+                // Fetch immediately
+                fetchRealTimeUpdates();
+            } else {
+                statusBadge.className = 'badge bg-secondary';
+                statusBadge.textContent = 'PAUSED';
+                toggleButton.className = 'btn btn-success me-2';
+                toggleButton.innerHTML = '<i class="fas fa-play"></i> Resume Updates';
+                // Clear the interval
+                clearInterval(updateInterval);
+            }
+        }
+        
+        // Set up event listeners
+        toggleButton.addEventListener('click', toggleUpdates);
+        
+        // Initial fetch and set up interval
+        fetchRealTimeUpdates();
+        updateInterval = setInterval(fetchRealTimeUpdates, 5000);
+        
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            clearInterval(updateInterval);
+        });
+    });
+</script>
+{% endblock %}

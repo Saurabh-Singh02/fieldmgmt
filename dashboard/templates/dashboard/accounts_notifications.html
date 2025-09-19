@@ -1,0 +1,71 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Expense Notifications - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Expense Notifications</h3>
+    <div>
+        <span class="badge bg-danger me-2">{{ unread_count }} unread</span>
+        <a href="{% url 'dashboard:accounts_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="dashboard-card mb-4">
+    <h5>Filters</h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label">Time Period</label>
+            <select class="form-select" name="time">
+                <option value="">All Time</option>
+                <option value="today" {% if time_filter == 'today' %}selected{% endif %}>Today</option>
+                <option value="week" {% if time_filter == 'week' %}selected{% endif %}>This Week</option>
+            </select>
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:accounts_notifications' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="dashboard-card">
+    <h5>Pending Expense Approvals</h5>
+    
+    {% if notifications %}
+    <div class="notifications-list">
+        {% for notification in notifications %}
+        <div class="notification-item mb-3 p-3 border rounded">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <strong>{{ notification.title }}</strong>
+                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+            </div>
+            <div class="notification-content">
+                {{ notification.message|linebreaks }}
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    Expense Submission
+                    • {{ notification.created_at|date:"M d, Y H:i" }}
+                </small>
+                {% if notification.related_object_type == 'expense' and notification.related_object_id %}
+                <a href="#" class="btn btn-sm btn-outline-primary">
+                    Review Expense
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No pending expense notifications</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

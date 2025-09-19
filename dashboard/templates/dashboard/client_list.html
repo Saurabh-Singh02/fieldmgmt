@@ -1,0 +1,66 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+  <h2 class="mb-4">🏢 Clients</h2>
+
+  <div class="mb-3">
+    <a href="{% url 'dashboard:client_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Add New Client
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Industry</th>
+            <th>Website</th>
+            <th>Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for client in clients_page %}
+          <tr>
+            <td>{{ client.name }}</td>
+            <td>{{ client.contact_email }}</td>
+            <td>{{ client.contact_phone }}</td>
+            <td>{{ client.industry }}</td>
+            <td><a href="{{ client.website }}" target="_blank">{{ client.website }}</a></td>
+            <td>
+              {% if client.is_active %}
+                ✅
+              {% else %}
+                ❌
+              {% endif %}
+            </td>
+            <td><a href="{% url 'dashboard:client_detail' client.pk %}">View</a></td>
+
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted">No clients found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer d-flex justify-content-center">
+      <nav>
+        <ul class="pagination mb-0">
+          {% if clients_page.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ clients_page.previous_page_number }}">Previous</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ clients_page.number }} / {{ clients_page.paginator.num_pages }}</span></li>
+          {% if clients_page.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ clients_page.next_page_number }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+{% endblock %}

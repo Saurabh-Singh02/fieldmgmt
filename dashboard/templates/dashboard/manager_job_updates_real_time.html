@@ -1,0 +1,98 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Job Updates - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Job Updates</h3>
+    <div>
+        <span class="badge bg-info me-2">{{ updated_jobs|length }} recent</span>
+        <a href="{% url 'dashboard:manager_real_time_updates_page' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="dashboard-card mb-4">
+    <h5>Filters</h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+                <option value="">All</option>
+                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-control" name="date" value="{{ request.GET.date }}">
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:manager_real_time_updates_page' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Job Updates -->
+<div class="dashboard-card mb-4">
+    <h5>Recent Job Updates</h5>
+    {% if updated_jobs %}
+        <div class="notifications-list">
+            {% for job in updated_jobs %}
+            <div class="notification-item mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong>{{ job.title }}</strong>
+                    <small class="text-muted">{{ job.last_updated|timesince }} ago</small>
+                </div>
+                <div class="notification-content">
+                    <p><strong>Client:</strong> {{ job.client }}</p>
+                    <p><strong>Status:</strong> {{ job.status }}</p>
+                    <p><strong>Priority:</strong> {{ job.priority }}</p>
+                    <p><strong>Engineer:</strong> {{ job.assigned_engineer }}</p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <small class="text-muted">
+                        <i class="fas fa-briefcase me-1"></i>
+                        Job Update • {{ job.last_updated|date:"M d, Y H:i" }}
+                    </small>
+                    <a href="/dashboard/jobs/{{ job.job_id }}/" class="btn btn-sm btn-outline-primary">
+                        View Job
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No recent job updates</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Notifications -->
+<div class="dashboard-card">
+    <h5>Recent Notifications</h5>
+    {% if notifications %}
+        <ul class="list-group">
+            {% for n in notifications %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <strong>{{ n.type|title }}</strong> - {{ n.message }}
+                </span>
+                <small class="text-muted">{{ n.created_at|timesince }} ago</small>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No recent notifications</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

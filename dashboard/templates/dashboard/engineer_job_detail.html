@@ -1,0 +1,571 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Job Details - {{ job.job_id }} - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Job Details: {{ job.job_id }}</h3>
+    <div>
+        <a href="{% url 'dashboard:engineer_jobs' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to My Jobs
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Job Information Card -->
+        <div class="dashboard-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>{{ job.title }}</h5>
+                <div>
+                    <span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'in_progress' %}warning{% elif job.status == 'cancelled' %}danger{% else %}info{% endif %} me-2">
+                        {{ job.get_status_display }}
+                    </span>
+                    <span class="badge bg-{% if job.priority == 'high' %}danger{% elif job.priority == 'medium' %}warning{% elif job.priority == 'urgent' %}dark{% else %}secondary{% endif %}">
+                        {{ job.get_priority_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Client:</strong> {{ job.client.name }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Service Type:</strong> {{ job.service_type.name }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Scheduled Date:</strong> {{ job.scheduled_date|date:"M d, Y H:i" }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Estimated Duration:</strong> {{ job.estimated_duration }} minutes
+                </div>
+            </div>
+            
+            {% if job.actual_start_time %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Actual Start:</strong> {{ job.actual_start_time|date:"M d, Y H:i" }}
+                </div>
+                {% if job.actual_end_time %}
+                <div class="col-md-6">
+                    <strong>Actual End:</strong> {{ job.actual_end_time|date:"M d, Y H:i" }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="mb-3">
+                <strong>Description:</strong>
+                <p>{{ job.description|linebreaks }}</p>
+            </div>
+            
+            <div class="mb-3">
+                <strong>Location:</strong>
+                <p>{{ job.location }}</p>
+                {% if job.latitude and job.longitude %}
+                <div class="map-container mt-2">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Coordinates: {{ job.latitude }}, {{ job.longitude }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Status Update Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Update Job Status</h5>
+            <form method="POST" action="{% url 'dashboard:update_job_status' job.id %}">
+                {% csrf_token %}
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <select class="form-select" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="assigned" {% if job.status == 'assigned' %}selected{% endif %}>Assigned</option>
+                            <option value="in_progress" {% if job.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="completed" {% if job.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="on_hold" {% if job.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">Update Status</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Notes Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Job Notes</h5>
+            
+            {% if notes %}
+            <div class="notes-list">
+                {% for note in notes %}
+                <div class="note-item mb-3 p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong>{{ note.author.get_full_name }}</strong>
+                        <small class="text-muted">{{ note.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-secondary">{{ note.get_note_type_display }}</span>
+                    </div>
+                    <p class="mb-0">{{ note.content|linebreaks }}</p>
+                    
+                    {% if note.note_type == 'image' and note.image %}
+                    <div class="mt-2">
+                        <img src="{{ note.image.url }}" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                    {% endif %}
+                    
+                    {% if note.note_type == 'voice' and note.audio_file %}
+                    <div class="mt-2">
+                        <audio controls class="w-100">
+                            <source src="{{ note.audio_file.url }}" type="audio/wav">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No notes yet.</p>
+            {% endif %}
+            
+            <hr>
+            
+            <h6>Add New Note</h6>
+            <form method="POST" action="{% url 'dashboard:add_job_note' job.id %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    {{ note_form.note_type }}
+                </div>
+                <div class="mb-2">
+                    {{ note_form.content }}
+                </div>
+                <button type="submit" class="btn btn-primary">Add Note</button>
+            </form>
+        </div>
+        
+        <!-- Expenses Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Expenses</h5>
+            
+            {% if expenses %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.date_incurred|date:"M d, Y" }}</td>
+                            <td>{{ expense.get_category_display }}</td>
+                            <td>{{ expense.description|truncatewords:5 }}</td>
+                            <td>${{ expense.amount }}</td>
+                            <td>
+                                <span class="badge bg-{% if expense.is_approved %}success{% else %}warning{% endif %}">
+                                    {% if expense.is_approved %}Approved{% else %}Pending{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No expenses submitted yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Quick Actions Card -->
+        <div class="dashboard-card">
+            <h5>Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#cameraModal">
+                    <i class="fas fa-camera me-2"></i> Take Photos
+                </button>
+                
+                <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#voiceModal">
+                    <i class="fas fa-microphone me-2"></i> Record Voice Note
+                </button>
+                
+                <button class="btn btn-outline-primary text-start" data-bs-toggle="modal" data-bs-target="#expenseModal">
+                    <i class="fas fa-receipt me-2"></i> Submit Expense
+                </button>
+                
+                <a href="{% url 'dashboard:get_current_location' %}?job_id={{ job.id }}" class="btn btn-outline-primary text-start"><i class="fas fa-map-marker-alt me-2"></i> Check In at Location</a>
+            </div>
+        </div>
+        
+        <!-- Time Logging Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Time Logging</h5>
+            
+            {% if time_logs %}
+            <div class="time-logs mb-3">
+                <h6>Recent Time Entries</h6>
+                {% for log in time_logs|slice:":3" %}
+                <div class="time-log-item mb-2 p-2 border rounded">
+                    <div class="d-flex justify-content-between">
+                        <small>{{ log.start_time|date:"M d" }}</small>
+                        <small>
+                            {% if log.duration %}
+                                {{ log.duration }}
+                            {% else %}
+                                In progress
+                            {% endif %}
+                        </small>
+                    </div>
+                    <small class="text-muted">{{ log.description|truncatewords:5 }}</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <h6>Log New Time</h6>
+            <form method="POST" action="{% url 'dashboard:log_time' job.id %}">
+                {% csrf_token %}
+                <div class="mb-2">
+                    <label class="form-label">Start Time</label>
+                    <input type="datetime-local" class="form-control" name="start_time" value="{{ timezone.now|date:'Y-m-d\TH:i' }}">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">End Time</label>
+                    <input type="datetime-local" class="form-control" name="end_time">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" rows="2" placeholder="Describe the work done..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Log Time</button>
+            </form>
+        </div>
+        
+        <!-- Client Information Card -->
+        <div class="dashboard-card mt-4">
+            <h5>Client Information</h5>
+            <p><strong>Company:</strong> {{ job.client.name }}</p>
+            <p><strong>Contact:</strong> 
+                {% if job.client_contact %}
+                    {{ job.client_contact.user.get_full_name }}
+                    <br><small class="text-muted">{{ job.client_contact.position }}</small>
+                {% else %}
+                    <span class="text-muted">Not specified</span>
+                {% endif %}
+            </p>
+            <p><strong>Address:</strong> {{ job.client.address }}</p>
+            <p><strong>Phone:</strong> {{ job.client.contact_phone }}</p>
+            <p><strong>Email:</strong> {{ job.client.contact_email }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Camera Modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel">Take Photos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="camera-container text-center mb-3">
+                    <video id="video" autoplay playsinline class="w-100 border rounded" style="max-height: 300px;"></video>
+                    <canvas id="canvas" class="d-none"></canvas>
+                </div>
+                
+                <div class="d-flex gap-2 mb-3">
+                    <button id="startCamera" class="btn btn-primary">
+                        <i class="fas fa-camera me-1"></i> Start Camera
+                    </button>
+                    <button id="captureBtn" class="btn btn-success" disabled>
+                        <i class="fas fa-camera me-1"></i> Capture Photo
+                    </button>
+                </div>
+                
+                <form id="photoForm" method="POST" action="{% url 'dashboard:add_image_note' job.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Photo Description</label>
+                        <textarea class="form-control" name="content" rows="2" placeholder="Describe this photo..."></textarea>
+                    </div>
+                    <input type="file" id="imageInput" name="image" accept="image/*" capture="camera" class="d-none">
+                    <div id="capturedImagePreview" class="text-center mb-3 d-none">
+                        <img id="preview" class="img-fluid rounded border" style="max-height: 200px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" disabled id="submitPhoto">
+                        <i class="fas fa-save me-1"></i> Save Photo
+                    </button>
+                </form>
+                
+                <div class="mt-3">
+                    <p class="text-muted small">Or upload existing photo:</p>
+                    <input type="file" class="form-control" accept="image/*" id="fileUpload">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Voice Recording Modal -->
+<div class="modal fade" id="voiceModal" tabindex="-1" aria-labelledby="voiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voiceModalLabel">Record Voice Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="voice-recorder text-center mb-3">
+                    <div id="recordingStatus" class="alert alert-info">
+                        <i class="fas fa-microphone-slash"></i> Ready to record
+                    </div>
+                    
+                    <div class="recorder-controls d-flex justify-content-center gap-2 mb-3">
+                        <button id="startRecord" class="btn btn-success">
+                            <i class="fas fa-record-vinyl me-1"></i> Start Recording
+                        </button>
+                        <button id="stopRecord" class="btn btn-danger" disabled>
+                            <i class="fas fa-stop me-1"></i> Stop
+                        </button>
+                    </div>
+                    
+                    <audio id="audioPlayback" controls class="w-100 mb-3 d-none"></audio>
+                </div>
+                
+                <form id="voiceForm" method="POST" action="{% url 'dashboard:add_voice_note' job.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Note Description</label>
+                        <textarea class="form-control" name="content" rows="2" placeholder="Describe this recording..."></textarea>
+                    </div>
+                    <input type="file" id="audioInput" name="audio_file" accept="audio/*" class="d-none">
+                    <button type="submit" class="btn btn-primary w-100" disabled id="submitVoice">
+                        <i class="fas fa-save me-1"></i> Save Recording
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="expenseModalLabel">Submit Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'dashboard:add_expense' job.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="transport">Transportation</option>
+                            <option value="materials">Materials</option>
+                            <option value="meals">Meals</option>
+                            <option value="accommodation">Accommodation</option>
+                            <option value="tools">Tools & Equipment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" class="form-control" name="amount" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="2" placeholder="Describe the expense..." required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date Incurred</label>
+                        <input type="date" class="form-control" name="date_incurred" value="{{ timezone.now|date:'Y-m-d' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Receipt Photo</label>
+                        <input type="file" class="form-control" name="receipt" accept="image/*" capture="camera" required>
+                        <div class="form-text">Take a photo of your receipt or upload existing photo.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Camera functionality
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const startCameraBtn = document.getElementById('startCamera');
+        const captureBtn = document.getElementById('captureBtn');
+        const preview = document.getElementById('preview');
+        const imageInput = document.getElementById('imageInput');
+        const submitPhoto = document.getElementById('submitPhoto');
+        const capturedImagePreview = document.getElementById('capturedImagePreview');
+        const photoForm = document.getElementById('photoForm');
+        const fileUpload = document.getElementById('fileUpload');
+        
+        let stream = null;
+        
+        // Start camera
+        startCameraBtn.addEventListener('click', async function() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                captureBtn.disabled = false;
+                startCameraBtn.disabled = true;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Unable to access camera. Please check permissions.');
+            }
+        });
+        
+        // Capture photo
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to data URL and display preview
+            const dataUrl = canvas.toDataURL('image/png');
+            preview.src = dataUrl;
+            capturedImagePreview.classList.remove('d-none');
+            
+            // Convert data URL to blob for form submission
+            fetch(dataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                    const file = new File([blob], 'captured_photo.png', { type: 'image/png' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    imageInput.files = dataTransfer.files;
+                    submitPhoto.disabled = false;
+                });
+            
+            // Stop camera
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                startCameraBtn.disabled = false;
+                captureBtn.disabled = true;
+            }
+        });
+        
+        // File upload handling
+        fileUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    capturedImagePreview.classList.remove('d-none');
+                    submitPhoto.disabled = false;
+                };
+                reader.readAsDataURL(this.files[0]);
+                
+                // Set the file for form submission
+                imageInput.files = this.files;
+            }
+        });
+        
+        // Voice recording functionality
+        const startRecordBtn = document.getElementById('startRecord');
+        const stopRecordBtn = document.getElementById('stopRecord');
+        const audioPlayback = document.getElementById('audioPlayback');
+        const recordingStatus = document.getElementById('recordingStatus');
+        const audioInput = document.getElementById('audioInput');
+        const submitVoice = document.getElementById('submitVoice');
+        const voiceForm = document.getElementById('voiceForm');
+        
+        let mediaRecorder = null;
+        let audioChunks = [];
+        
+        startRecordBtn.addEventListener('click', async function() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = function() {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.classList.remove('d-none');
+                    
+                    // Create file for form submission
+                    const audioFile = new File(audioChunks, 'recording.wav', { type: 'audio/wav' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(audioFile);
+                    audioInput.files = dataTransfer.files;
+                    submitVoice.disabled = false;
+                    
+                    // Stop all tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                
+                mediaRecorder.start();
+                startRecordBtn.disabled = true;
+                stopRecordBtn.disabled = false;
+                recordingStatus.innerHTML = '<i class="fas fa-microphone"></i> Recording...';
+                recordingStatus.className = 'alert alert-warning';
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Unable to access microphone. Please check permissions.');
+            }
+        });
+        
+        stopRecordBtn.addEventListener('click', function() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                startRecordBtn.disabled = false;
+                stopRecordBtn.disabled = true;
+                recordingStatus.innerHTML = '<i class="fas fa-microphone-slash"></i> Recording stopped';
+                recordingStatus.className = 'alert alert-success';
+            }
+        });
+        
+        // Form submission enhancements
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                // Show loading state
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                    submitBtn.disabled = true;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

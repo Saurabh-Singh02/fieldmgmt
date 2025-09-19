@@ -1,0 +1,108 @@
+{% extends '../dashboard/base.html' %}
+
+{% block title %}Jobs Management - FieldAI{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Jobs Management</h3>
+    <div>
+        <a href="{% url 'dashboard:add_job' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Job
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="dashboard-card mb-4">
+    <h5>Filters</h5>
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+                <option value="">All Statuses</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="assigned" {% if status_filter == 'assigned' %}selected{% endif %}>Assigned</option>
+                <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="priority" class="form-label">Priority</label>
+            <select class="form-select" id="priority" name="priority">
+                <option value="">All Priorities</option>
+                <option value="low" {% if priority_filter == 'low' %}selected{% endif %}>Low</option>
+                <option value="medium" {% if priority_filter == 'medium' %}selected{% endif %}>Medium</option>
+                <option value="high" {% if priority_filter == 'high' %}selected{% endif %}>High</option>
+                <option value="urgent" {% if priority_filter == 'urgent' %}selected{% endif %}>Urgent</option>
+            </select>
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="{% url 'dashboard:manager_jobs' %}" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+</div>
+
+<!-- Jobs List -->
+<div class="dashboard-card">
+    <h5>All Jobs</h5>
+    
+    {% if jobs %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Title</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Engineer</th>
+                    <th>Scheduled Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>{{ job.job_id }}</td>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.client.name }}</td>
+                    <td>
+                        <span class="badge bg-{% if job.status == 'completed' %}success{% elif job.status == 'in_progress' %}warning{% elif job.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                            {{ job.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-{% if job.priority == 'high' %}danger{% elif job.priority == 'medium' %}warning{% elif job.priority == 'urgent' %}dark{% else %}secondary{% endif %}">
+                            {{ job.get_priority_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if job.assigned_engineer %}
+                            {{ job.assigned_engineer.user.get_full_name }}
+                        {% else %}
+                            <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ job.scheduled_date|date:"M d, Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'dashboard:job_detail' job.id %}" class="btn btn-sm btn-outline-primary">
+    View Job
+</a>
+
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4">
+        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+        <p class="text-muted">No jobs found. <a href="{% url 'dashboard:add_job' %}">Create your first job</a></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

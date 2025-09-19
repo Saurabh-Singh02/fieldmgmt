@@ -1,0 +1,104 @@
+{# dashboard/templates/dashboard/engineer_report.html #}
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <h2 class="mb-4">📑 Engineer Report</h2>
+
+  <!-- Filter -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">Filter Options</div>
+    <div class="card-body">
+      <form method="get" class="row g-3">
+        <div class="col-md-3">
+          <label>Status</label>
+          <select name="status" class="form-select">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="assigned">Assigned</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="on_hold">On Hold</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label>Priority</label>
+          <select name="priority" class="form-select">
+            <option value="">All</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label>Start Date</label>
+          <input type="date" name="start_date" class="form-control">
+        </div>
+
+        <div class="col-md-3">
+          <label>End Date</label>
+          <input type="date" name="end_date" class="form-control">
+        </div>
+
+        <div class="col-12 mt-3 d-flex justify-content-between">
+          <button type="submit" class="btn btn-success">Apply Filters</button>
+          {% if request.GET %}
+            <a class="btn btn-outline-primary" href="?{{ request.GET.urlencode }}&export=1">
+              <i class="bi bi-download"></i> Export CSV
+            </a>
+          {% else %}
+            <a class="btn btn-outline-primary" href="?export=1">
+              <i class="bi bi-download"></i> Export CSV
+            </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-light">
+      <strong>Your Jobs</strong>
+      <span class="text-muted small float-end">
+        Page {{ jobs_page.number }} of {{ jobs_page.paginator.num_pages }} —
+        {{ jobs_page.paginator.count }} records
+      </span>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Job ID</th>
+            <th>Title</th>
+            <th>Client</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Scheduled Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs_page %}
+            <tr>
+              <td>{{ job.job_id }}</td>
+              <td>{{ job.title }}</td>
+              <td>{{ job.client.name }}</td>
+              <td>{{ job.get_status_display }}</td>
+              <td>{{ job.get_priority_display }}</td>
+              <td>{{ job.scheduled_date|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center text-muted">No jobs found</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

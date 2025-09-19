@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% block content %}
+<div class="container py-4">
+  <h2>🏢 {{ client.name }}</h2>
+  <p><strong>Email:</strong> {{ client.contact_email }}</p>
+  <p><strong>Phone:</strong> {{ client.contact_phone }}</p>
+  <p><strong>Industry:</strong> {{ client.industry }}</p>
+  <p><strong>Website:</strong> <a href="{{ client.website }}" target="_blank">{{ client.website }}</a></p>
+  <p><strong>Active:</strong> {{ client.is_active|yesno:"✅,❌" }}</p>
+
+  <hr/>
+
+  <h3>Contacts</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Position</th>
+        <th>Primary</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for contact in contacts %}
+      <tr>
+        <td>{{ contact.user }}</td>
+        <td>{{ contact.position }}</td>
+        <td>{% if contact.is_primary %}✅{% else %}❌{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3">No contacts</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h4>Add New Contact</h4>
+  <form method="post">
+    {% csrf_token %}
+    {{ contact_form.as_p }}
+    <button type="submit" class="btn btn-success">Add Contact</button>
+  </form>
+</div>
+{% endblock %}
